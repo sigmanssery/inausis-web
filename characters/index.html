@@ -365,6 +365,7 @@ body {
 const API = 'https://web-production-1a6f0.up.railway.app';
 
 function enterChar(path) {
+  sessionStorage.setItem('from_characters', '1');
   window.location.href = path;
 }
 
