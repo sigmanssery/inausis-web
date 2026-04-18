@@ -25,9 +25,7 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body { height: 100%; overflow: hidden; }
-
-#app { width: 100%; }
+html, body { height: 100%; overflow: hidden; margin: 0; padding: 0; }
 
 body {
   background: var(--bg);
@@ -35,7 +33,17 @@ body {
   font-family: var(--body);
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
+
+#app.visible {
+  display: flex !important;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+}
+
+/* body styles moved above */
 
 /* ── SETUP SCREEN ── */
 #setup {
