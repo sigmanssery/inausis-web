@@ -384,10 +384,10 @@ body {
 <iframe id="music-frame" style="display:none;" allow="autoplay"></iframe>
 
 <script>
-const API = 'https://web-production-1a6f0.up.railway.app';
+const API = 'https://web-production-51b81.up.railway.app';
 let apiKey = '';
 let model = '';
-let history = [];
+let history = JSON.parse(localStorage.getItem('nora_history') || '[]');
 let musicPlaying = false;
 
 // ── SETUP ──
@@ -414,6 +414,7 @@ window.onload = () => {
 async function init() {
   initFireflies();
   startClock();
+  restoreHistory();
 
   // ping API 取得離線時長
   try {
@@ -429,6 +430,23 @@ async function init() {
     document.getElementById('tb-status').textContent = '離線模式';
     showOpeningFallback();
   }
+}
+
+// ── RESTORE HISTORY ──
+function restoreHistory() {
+  if (history.length === 0) return;
+  const messages = document.getElementById('messages');
+  history.forEach(m => {
+    if (m.role === 'user') {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg msg-user';
+      wrap.innerHTML = '<div class="msg-label">你</div><div class="msg-bubble">' + m.content.replace(/\n/g,'<br>') + '</div>';
+      messages.appendChild(wrap);
+    } else if (m.role === 'assistant') {
+      addNoraMessage(m.content, null);
+    }
+  });
+  messages.scrollTop = messages.scrollHeight;
 }
 
 // ── OPENING ──
@@ -564,6 +582,7 @@ async function sendMessage() {
   input.style.height = 'auto';
   addUserMessage(text);
   history.push({ role: 'user', content: text });
+  localStorage.setItem('nora_history', JSON.stringify(history.slice(-40)));
 
   showTyping();
 
@@ -592,6 +611,7 @@ async function sendMessage() {
 
     const content = data.choices?.[0]?.message?.content || '';
     history.push({ role: 'assistant', content });
+    localStorage.setItem('nora_history', JSON.stringify(history.slice(-40)));
 
     // 解析 thought
     let mainContent = content;
