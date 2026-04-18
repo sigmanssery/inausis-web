@@ -562,6 +562,29 @@ function showOpeningFallback() {
 // ── MESSAGES ──
 function addNoraMessage(content, thought, isOpening = false) {
   const messages = document.getElementById('messages');
+
+  // Railway 回傳的 HTML 格式，直接全寬渲染
+  if (content && content.includes('<text-reply>')) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'width:100%;max-width:100%;align-self:stretch;';
+    const match = content.match(/<text-reply>([\s\S]*?)<\/text-reply>/);
+    const inner = match ? match[1] : content;
+    wrap.innerHTML = inner;
+    // 執行內嵌 script
+    wrap.querySelectorAll('script').forEach(s => {
+      try {
+        const ns = document.createElement('script');
+        ns.textContent = s.textContent;
+        document.body.appendChild(ns);
+        s.remove();
+      } catch(e) {}
+    });
+    messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+    return;
+  }
+
+  // 普通文字格式
   const wrap = document.createElement('div');
   wrap.className = 'msg msg-nora';
 
@@ -572,14 +595,12 @@ function addNoraMessage(content, thought, isOpening = false) {
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
   
-  // 處理格式
   let html = content
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     .replace(/「([^」]*)」/g, '「<span class="hi">$1</span>」')
     .replace(/\n/g, '<br>');
   
   bubble.innerHTML = html;
-
   wrap.appendChild(label);
   wrap.appendChild(bubble);
 
