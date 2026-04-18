@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INAUSIS · Dev Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0a0a0a;
+  --surface: #111;
+  --surface2: #1a1a1a;
+  --border: #222;
+  --border2: #333;
+  --text: #e0e0e0;
+  --mid: #888;
+  --dim: #444;
+  --rose: #c9839e;
+  --green: #4ade80;
+  --yellow: #facc15;
+  --red: #f87171;
+  --blue: #60a5fa;
+  --mono: 'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--mono); background: var(--bg); color: var(--text); font-size: 13px; }
+
+/* ── LOGIN ── */
+#login {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; background: var(--bg); z-index: 200; padding: 24px;
+}
+
+.login-title { font-size: 11px; letter-spacing: 3px; color: var(--mid); }
+.login-sub { font-size: 20px; color: var(--text); letter-spacing: 2px; }
+
+.login-input {
+  width: 100%; max-width: 360px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 12px 16px;
+  color: var(--text); font-family: var(--mono); font-size: 13px;
+  outline: none; letter-spacing: 1px;
+}
+.login-input:focus { border-color: var(--rose); }
+
+.login-btn {
+  width: 100%; max-width: 360px; padding: 12px;
+  background: var(--rose); border: none; border-radius: 6px;
+  color: #000; font-family: var(--mono); font-size: 12px;
+  letter-spacing: 2px; cursor: pointer;
+}
+
+/* ── LAYOUT ── */
+#app { display: none; height: 100vh; display: none; flex-direction: column; }
+#app.visible { display: flex; }
+
+/* ── TOPBAR ── */
+#topbar {
+  flex-shrink: 0; padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.tb-title { font-size: 11px; letter-spacing: 3px; color: var(--rose); }
+.tb-info { font-size: 11px; color: var(--dim); }
+
+/* ── MAIN ── */
+#main { flex: 1; display: flex; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 260px; flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  font-size: 10px; letter-spacing: 2px; color: var(--dim);
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.refresh-btn {
+  background: none; border: 1px solid var(--border2); border-radius: 4px;
+  color: var(--mid); padding: 3px 8px; cursor: pointer; font-family: var(--mono);
+  font-size: 10px; letter-spacing: 1px;
+}
+.refresh-btn:hover { border-color: var(--rose); color: var(--rose); }
+
+.user-item {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s;
+}
+.user-item:hover { background: var(--surface); }
+.user-item.active { background: var(--surface2); border-left: 2px solid var(--rose); }
+
+.user-id { font-size: 12px; color: var(--text); margin-bottom: 4px; }
+.user-meta { font-size: 10px; color: var(--dim); display: flex; gap: 8px; flex-wrap: wrap; }
+.user-badge {
+  padding: 1px 6px; border-radius: 3px; font-size: 10px;
+}
+.badge-broken { background: rgba(248,113,113,0.15); color: var(--red); }
+.badge-rel { background: rgba(201,131,158,0.15); color: var(--rose); }
+
+/* ── CONTENT ── */
+#content { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+.section-title {
+  font-size: 10px; letter-spacing: 2px; color: var(--dim);
+  padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+}
+
+/* ── STATS GRID ── */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px;
+}
+
+.stat-label { font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-bottom: 6px; }
+.stat-value { font-size: 22px; color: var(--text); }
+.stat-bar { margin-top: 6px; height: 2px; background: var(--border); border-radius: 1px; }
+.stat-fill { height: 100%; border-radius: 1px; transition: width 0.5s; }
+
+/* ── CHART ── */
+.chart-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 16px;
+}
+
+.chart-title { font-size: 10px; letter-spacing: 2px; color: var(--dim); margin-bottom: 12px; }
+canvas { max-height: 200px; }
+
+/* ── MEMORIES ── */
+.memory-list { display: flex; flex-direction: column; gap: 6px; }
+
+.memory-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 14px;
+}
+
+.memory-turn { font-size: 10px; color: var(--rose); margin-bottom: 4px; }
+.memory-text { font-size: 12px; color: var(--text); line-height: 1.6; }
+.memory-time { font-size: 10px; color: var(--dim); margin-top: 4px; }
+
+/* ── FRAGMENTS ── */
+.fragment-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+.fragment-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 12px; text-align: center;
+}
+
+.fragment-id { font-size: 24px; margin-bottom: 4px; }
+.fragment-label { font-size: 10px; color: var(--dim); margin-bottom: 6px; }
+.fragment-unlocked { color: var(--green); font-size: 11px; }
+.fragment-locked { color: var(--dim); font-size: 11px; }
+.fragment-shown { font-size: 10px; color: var(--mid); margin-top: 4px; }
+
+/* ── NORA LIFE ── */
+.life-list { display: flex; flex-direction: column; gap: 6px; }
+
+.life-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 14px; display: grid;
+  grid-template-columns: auto 1fr; gap: 12px;
+}
+
+.life-time { font-size: 11px; color: var(--rose); white-space: nowrap; }
+.life-content { }
+.life-location { font-size: 10px; color: var(--mid); margin-bottom: 3px; }
+.life-action { font-size: 12px; color: var(--text); line-height: 1.5; margin-bottom: 3px; }
+.life-thought { font-size: 11px; color: var(--dim); font-style: italic; }
+
+/* ── EMPTY ── */
+.empty { color: var(--dim); font-size: 12px; padding: 20px; text-align: center; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <p class="login-title">INAUSIS · DEV PANEL</p>
+  <p class="login-sub">開發者面板</p>
+  <input type="password" id="dev-key" class="login-input" placeholder="API Key 後8碼" onkeydown="if(event.key==='Enter')devLogin()">
+  <button class="login-btn" onclick="devLogin()">進入</button>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="topbar">
+    <span class="tb-title">NORA · DEV PANEL</span>
+    <span class="tb-info" id="tb-info">載入中...</span>
+  </div>
+  <div id="main">
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <span>用戶列表</span>
+        <button class="refresh-btn" onclick="loadUsers()">重新整理</button>
+      </div>
+      <div id="user-list"></div>
+    </div>
+    <div id="content">
+      <div class="empty">← 選擇一個用戶查看詳細資料</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://web-production-1a6f0.up.railway.app';
+let devKey = '';
+let currentUser = null;
+let statsChart = null;
+
+function devLogin() {
+  const key = document.getElementById('dev-key').value.trim();
+  if (!key) return;
+  devKey = key;
+  localStorage.setItem('dev_key', key);
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  loadUsers();
+  loadNoraLife();
+}
+
+window.onload = () => {
+  const saved = localStorage.getItem('dev_key');
+  if (saved) document.getElementById('dev-key').value = saved;
+};
+
+async function apiFetch(path) {
+  const r = await fetch(API + path, {
+    headers: { 'Authorization': `Bearer ${devKey}` }
+  });
+  if (r.status === 401) { alert('認證失敗，請確認 Key'); return null; }
+  return r.json();
+}
+
+// ── 載入用戶列表 ──
+async function loadUsers() {
+  const data = await apiFetch('/dev/users');
+  if (!data) return;
+
+  document.getElementById('tb-info').textContent = `${data.total} 個用戶`;
+
+  const list = document.getElementById('user-list');
+  list.innerHTML = '';
+
+  if (data.users.length === 0) {
+    list.innerHTML = '<div class="empty">沒有用戶資料</div>';
+    return;
+  }
+
+  data.users.forEach(u => {
+    const el = document.createElement('div');
+    el.className = 'user-item';
+    el.onclick = () => selectUser(u, el);
+
+    const lastSeen = u.last_seen ? new Date(u.last_seen).toLocaleString('zh-TW') : '從未';
+    el.innerHTML = `
+      <div class="user-id">${u.user_id}</div>
+      <div class="user-meta">
+        <span class="user-badge badge-rel">${u.relationship}</span>
+        ${u.broken ? '<span class="user-badge badge-broken">BROKEN</span>' : ''}
+        <span>輪次 ${u.turn_count}</span>
+      </div>
+      <div class="user-meta" style="margin-top:3px;">上次：${lastSeen}</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ── 選擇用戶 ──
+async function selectUser(user, el) {
+  document.querySelectorAll('.user-item').forEach(e => e.classList.remove('active'));
+  el.classList.add('active');
+  currentUser = user;
+
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="empty">載入中...</div>';
+
+  const [memoriesData, fragmentsData] = await Promise.all([
+    apiFetch(`/dev/memories/${user.user_id}`),
+    apiFetch(`/dev/fragments/${user.user_id}`)
+  ]);
+
+  renderUserDetail(user, memoriesData, fragmentsData);
+}
+
+// ── 渲染用戶詳情 ──
+function renderUserDetail(user, memoriesData, fragmentsData) {
+  const content = document.getElementById('content');
+  const s = user.stats;
+
+  const statColors = {
+    mood: '#60a5fa', loneliness: '#a78bfa', affection: '#c9839e',
+    negative: '#f87171', energy: '#4ade80', hunger: '#facc15',
+    desire: '#fb923c', mystery: '#e879f9'
+  };
+
+  const statMaxes = { affection: 200 };
+
+  // 數值卡片
+  const statsHTML = Object.entries(s).map(([k, v]) => {
+    const max = statMaxes[k] || 100;
+    const pct = Math.round((v / max) * 100);
+    const color = statColors[k] || '#888';
+    return `
+      <div class="stat-card">
+        <div class="stat-label">${k.toUpperCase()}</div>
+        <div class="stat-value" style="color:${color}">${v}</div>
+        <div class="stat-bar">
+          <div class="stat-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // 記憶列表
+  const memories = memoriesData?.memories || [];
+  const memoriesHTML = memories.length === 0
+    ? '<div class="empty">沒有記憶記錄</div>'
+    : memories.slice().reverse().map(m => `
+        <div class="memory-item">
+          <div class="memory-turn">輪次 ${m.turn}</div>
+          <div class="memory-text">${m.summary}</div>
+          <div class="memory-time">${m.created_at}</div>
+        </div>
+      `).join('');
+
+  // 碎片列表
+  const unlockedFragments = (fragmentsData?.fragments || []).map(f => f.fragment_id);
+  const fragmentsHTML = [1,2,3,4].map(id => {
+    const f = (fragmentsData?.fragments || []).find(x => x.fragment_id === id);
+    const names = {1:'熟人', 2:'依賴', 3:'喜歡', 4:'戀人'};
+    if (f) {
+      return `
+        <div class="fragment-card">
+          <div class="fragment-id">💭</div>
+          <div class="fragment-label">碎片 ${id}｜${names[id]}</div>
+          <div class="fragment-unlocked">✓ 已解鎖</div>
+          <div class="fragment-shown">顯示 ${f.shown_count} 次</div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="fragment-card" style="opacity:0.4">
+          <div class="fragment-id">🔒</div>
+          <div class="fragment-label">碎片 ${id}｜${names[id]}</div>
+          <div class="fragment-locked">未解鎖</div>
+        </div>
+      `;
+    }
+  }).join('');
+
+  // 數值雷達圖資料
+  const chartLabels = ['Mood','Loneliness','Affection','Negative','Energy','Desire'];
+  const chartData = [
+    s.mood, s.loneliness,
+    Math.round(s.affection/2),  // 縮放到100
+    s.negative, s.energy, s.desire
+  ];
+
+  content.innerHTML = `
+    <div>
+      <div class="section-title">用戶資訊</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div><span style="color:var(--dim)">ID：</span>${user.user_id}</div>
+        <div><span style="color:var(--dim)">關係：</span><span style="color:var(--rose)">${user.relationship} (Lv.${user.rel_level})</span></div>
+        <div><span style="color:var(--dim)">輪次：</span>${user.turn_count}</div>
+        <div><span style="color:var(--dim)">BROKEN：</span><span style="color:${user.broken ? 'var(--red)' : 'var(--green)'}">${user.broken ? '是' : '否'}</span></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">即時數值</div>
+      <div class="stats-grid">${statsHTML}</div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title">數值雷達圖</div>
+      <canvas id="stats-chart"></canvas>
+    </div>
+
+    <div>
+      <div class="section-title">破碎記憶解鎖狀態</div>
+      <div class="fragment-grid">${fragmentsHTML}</div>
+    </div>
+
+    <div>
+      <div class="section-title">對話記憶（${memories.length} 筆）</div>
+      <div class="memory-list">${memoriesHTML}</div>
+    </div>
+  `;
+
+  // 畫雷達圖
+  const ctx = document.getElementById('stats-chart').getContext('2d');
+  if (statsChart) statsChart.destroy();
+  statsChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        data: chartData,
+        backgroundColor: 'rgba(201,131,158,0.15)',
+        borderColor: 'rgba(201,131,158,0.8)',
+        pointBackgroundColor: 'rgba(201,131,158,1)',
+        borderWidth: 1.5,
+        pointRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          grid: { color: '#222' },
+          ticks: { display: false },
+          pointLabels: { color: '#888', font: { family: 'DM Mono', size: 11 } }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// ── Nora 後台生活（側邊加入） ──
+async function loadNoraLife() {
+  // 在 sidebar 底部加入 Nora 生活記錄入口
+  const sidebar = document.getElementById('sidebar');
+  const lifeSection = document.createElement('div');
+  lifeSection.style.cssText = 'margin-top:auto;border-top:1px solid var(--border);';
+  lifeSection.innerHTML = `
+    <div class="sidebar-header" style="cursor:pointer" onclick="showNoraLife()">
+      <span>Nora 後台生活</span>
+      <span style="color:var(--rose)">▶</span>
+    </div>
+  `;
+  sidebar.appendChild(lifeSection);
+}
+
+async function showNoraLife() {
+  const data = await apiFetch('/dev/nora-life');
+  if (!data) return;
+
+  const content = document.getElementById('content');
+  const lifeHTML = data.nora_life.length === 0
+    ? '<div class="empty">還沒有後台生活記錄</div>'
+    : data.nora_life.map(l => `
+        <div class="life-item">
+          <div class="life-time">${l.tw_time}</div>
+          <div class="life-content">
+            <div class="life-location">📍 ${l.location}</div>
+            <div class="life-action">${l.action}</div>
+            <div class="life-thought">💭 ${l.thought}</div>
+          </div>
+        </div>
+      `).join('');
+
+  content.innerHTML = `
+    <div>
+      <div class="section-title">Nora 後台生活記錄（最近 48 筆）</div>
+      <div class="life-list">${lifeHTML}</div>
+    </div>
+  `;
+
+  document.querySelectorAll('.user-item').forEach(e => e.classList.remove('active'));
+}
+</script>
+</body>
+</html>
