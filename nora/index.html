@@ -490,8 +490,7 @@ async function doLogin() {
     localStorage.setItem('nora_username', username);
     
     history = JSON.parse(localStorage.getItem('nora_history_' + username) || '[]');
-    document.getElementById('setup').style.display = 'none';
-    init();
+    window.location.href = '/characters';
   } catch(e) {
     showError('連線失敗，請稍後再試');
   }
@@ -543,8 +542,7 @@ function enterRoom() {
   localStorage.setItem('nora_key', key);
   localStorage.setItem('nora_model', model);
   history = JSON.parse(localStorage.getItem('nora_history_' + username) || '[]');
-  document.getElementById('setup').style.display = 'none';
-  init();
+  window.location.href = '/characters';
 }
 
 // 自動登入
