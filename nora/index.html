@@ -488,8 +488,6 @@ async function doLogin() {
     
     localStorage.setItem('nora_token', authToken);
     localStorage.setItem('nora_username', username);
-    
-    history = JSON.parse(localStorage.getItem('nora_history_' + username) || '[]');
     window.location.href = '/characters';
   } catch(e) {
     showError('連線失敗，請稍後再試');
@@ -522,10 +520,7 @@ async function doRegister() {
     
     localStorage.setItem('nora_token', authToken);
     localStorage.setItem('nora_username', username);
-    
-    history = [];
-    document.getElementById('setup').style.display = 'none';
-    init();
+    window.location.href = '/characters';
   } catch(e) {
     showError('連線失敗，請稍後再試');
   }
@@ -542,7 +537,8 @@ function enterRoom() {
   localStorage.setItem('nora_key', key);
   localStorage.setItem('nora_model', model);
   history = JSON.parse(localStorage.getItem('nora_history_' + username) || '[]');
-  window.location.href = '/characters';
+  document.getElementById('setup').style.display = 'none';
+  init();
 }
 
 // 自動登入
@@ -562,9 +558,7 @@ window.onload = async () => {
         username = d.username;
         apiKey = d.api_key || '';
         model = d.preferred_model || 'deepseek-chat';
-        history = JSON.parse(localStorage.getItem('nora_history_' + username) || '[]');
-        document.getElementById('setup').style.display = 'none';
-        init();
+        window.location.href = '/characters';
         return;
       }
     } catch(e) {}
@@ -587,8 +581,10 @@ async function init() {
   
   // 顯示用戶名和登出按鈕
   if (username) {
-    document.getElementById('tb-user').textContent = username;
-    document.getElementById('tb-logout').style.display = 'block';
+    const tbUser = document.getElementById('tb-user');
+    const tbLogout = document.getElementById('tb-logout');
+    if (tbUser) tbUser.textContent = username;
+    if (tbLogout) tbLogout.style.display = 'block';
   }
   if (history.length > 0) {
     restoreHistory();
