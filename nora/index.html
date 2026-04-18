@@ -479,6 +479,38 @@ function restoreHistory() {
   messages.scrollTop = messages.scrollHeight;
 }
 
+// ── WAITING MONOLOGUES ──
+async function showWaitingMonologues(userId, absenceTier) {
+  if (absenceTier < 1) return;
+  try {
+    const r = await fetch(API + '/waiting-monologues/' + userId);
+    const d = await r.json();
+    if (!d.monologues || d.monologues.length === 0) return;
+    
+    const messages = document.getElementById('messages');
+    
+    // 顯示等待獨白
+    d.monologues.forEach(m => {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;flex-direction:column;gap:4px;align-self:flex-start;max-width:75%;opacity:0;transition:opacity 0.8s;';
+      wrap.innerHTML = `
+        <div style="font-size:10px;color:var(--text-faint);letter-spacing:1px;font-family:var(--mono);padding:0 4px;">${m.time} · Nora 獨自說</div>
+        <div style="background:rgba(176,122,144,0.06);border:0.5px solid rgba(176,122,144,0.15);border-radius:4px 14px 14px 14px;padding:10px 16px;font-size:13px;color:var(--text-mid);font-style:italic;line-height:1.8;">「${m.monologue}」</div>
+      `;
+      messages.appendChild(wrap);
+      setTimeout(() => wrap.style.opacity = '1', 100);
+    });
+    
+    // 分隔線
+    const sep = document.createElement('div');
+    sep.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:8px 0;';
+    sep.innerHTML = '<div style="flex:1;height:0.5px;background:rgba(176,122,144,0.1);"></div><span style="font-size:10px;color:var(--text-faint);font-family:var(--mono);letter-spacing:2px;">你回來了</span><div style="flex:1;height:0.5px;background:rgba(176,122,144,0.1);"></div>';
+    messages.appendChild(sep);
+    
+    messages.scrollTop = messages.scrollHeight;
+  } catch(e) {}
+}
+
 // ── OPENING ──
 function showOpening(data) {
   const tier = data.absence.tier;
