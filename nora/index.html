@@ -358,19 +358,52 @@ body {
 <!-- SETUP SCREEN -->
 <div id="setup">
   <p class="setup-title">Nora Elwin · 虛擬房間</p>
-  <p class="setup-name">歡迎回來。</p>
-  <p class="setup-desc">請填入你的 API Key 才能進入。<br>她在等你。</p>
-  <input type="password" id="key-input" class="setup-input" placeholder="sk-... 或 AIza... 或 DeepSeek Key">
-  <select id="model-select" class="setup-input" style="cursor:pointer;">
-    <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (推薦)</option>
-    <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (快)</option>
-    <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-    <option value="deepseek-chat">DeepSeek Chat</option>
-    <option value="deepseek-reasoner">DeepSeek Reasoner</option>
-  </select>
-  <button class="setup-btn" onclick="enterRoom()">進入房間</button>
-  <p class="setup-note">Key 只存在你的瀏覽器，不會傳到任何伺服器以外。<br>費用由你自行承擔。</p>
+  <p class="setup-name" id="setup-title-text">歡迎回來。</p>
+  <p class="setup-desc" id="setup-desc">登入後進入房間。沒有帳號？<span style="color:var(--rose);cursor:pointer;" onclick="switchMode('register')">點此註冊</span></p>
+
+  <!-- 登入模式 -->
+  <div id="login-mode">
+    <input type="text" id="login-username" class="setup-input" placeholder="用戶名">
+    <input type="password" id="login-password" class="setup-input" placeholder="密碼">
+    <button class="setup-btn" onclick="doLogin()">登入</button>
+    <p class="setup-note" style="cursor:pointer;color:var(--rose);" onclick="switchMode('apikey')">或者直接使用 API Key →</p>
+  </div>
+
+  <!-- 註冊模式 -->
+  <div id="register-mode" style="display:none;">
+    <input type="text" id="reg-username" class="setup-input" placeholder="用戶名（2~20字元，英數字）">
+    <input type="password" id="reg-password" class="setup-input" placeholder="密碼（至少6字元）">
+    <input type="password" id="reg-password2" class="setup-input" placeholder="確認密碼">
+    <input type="text" id="reg-apikey" class="setup-input" placeholder="API Key（可之後再填）">
+    <select id="reg-model" class="setup-input" style="cursor:pointer;">
+      <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (推薦)</option>
+      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (快)</option>
+      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+      <option value="deepseek-chat">DeepSeek Chat</option>
+      <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+    </select>
+    <button class="setup-btn" onclick="doRegister()">註冊並進入</button>
+    <p class="setup-note" style="cursor:pointer;color:var(--rose);" onclick="switchMode('login')">← 返回登入</p>
+  </div>
+
+  <!-- API Key 模式（舊模式） -->
+  <div id="apikey-mode" style="display:none;">
+    <input type="password" id="key-input" class="setup-input" placeholder="sk-... 或 AIza... 或 DeepSeek Key">
+    <select id="model-select" class="setup-input" style="cursor:pointer;">
+      <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (推薦)</option>
+      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (快)</option>
+      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+      <option value="deepseek-chat">DeepSeek Chat</option>
+      <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+    </select>
+    <button class="setup-btn" onclick="enterRoom()">進入房間</button>
+    <p class="setup-note" style="cursor:pointer;color:var(--rose);" onclick="switchMode('login')">← 返回登入</p>
+    <p class="setup-note">Key 只存在你的瀏覽器，不會傳到任何伺服器以外。</p>
+  </div>
+
+  <p id="setup-error" style="color:var(--red);font-size:12px;font-family:var(--mono);display:none;"></p>
 </div>
 
 <!-- FIREFLIES -->
@@ -405,33 +438,157 @@ body {
 const API = 'https://web-production-1a6f0.up.railway.app';
 let apiKey = '';
 let model = '';
-let history = JSON.parse(localStorage.getItem('nora_history_' + apiKey.slice(-8)) || '[]');
+let authToken = '';
+let username = '';
+let history = [];
 let musicPlaying = false;
 
-// ── SETUP ──
+// ── SETUP MODE ──
+function switchMode(mode) {
+  document.getElementById('login-mode').style.display = mode === 'login' ? 'flex' : 'none';
+  document.getElementById('register-mode').style.display = mode === 'register' ? 'flex' : 'none';
+  document.getElementById('apikey-mode').style.display = mode === 'apikey' ? 'flex' : 'none';
+  document.getElementById('setup-error').style.display = 'none';
+  // 只對 login-mode 和 register-mode 設定 flex-direction
+  if (mode === 'login' || mode === 'register') {
+    document.getElementById(mode + '-mode').style.flexDirection = 'column';
+    document.getElementById(mode + '-mode').style.gap = '12px';
+    document.getElementById(mode + '-mode').style.width = '100%';
+    document.getElementById(mode + '-mode').style.maxWidth = '400px';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('setup-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function doLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  if (!u || !p) { showError('請填入帳號和密碼'); return; }
+  
+  try {
+    const r = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const d = await r.json();
+    if (!r.ok) { showError(d.detail || '登入失敗'); return; }
+    
+    authToken = d.token;
+    username = d.username;
+    apiKey = d.api_key || '';
+    model = d.preferred_model || 'deepseek-chat';
+    
+    localStorage.setItem('nora_token', authToken);
+    localStorage.setItem('nora_username', username);
+    
+    history = JSON.parse(localStorage.getItem('nora_history_' + username) || '[]');
+    document.getElementById('setup').style.display = 'none';
+    init();
+  } catch(e) {
+    showError('連線失敗，請稍後再試');
+  }
+}
+
+async function doRegister() {
+  const u = document.getElementById('reg-username').value.trim();
+  const p = document.getElementById('reg-password').value;
+  const p2 = document.getElementById('reg-password2').value;
+  const key = document.getElementById('reg-apikey').value.trim();
+  const m = document.getElementById('reg-model').value;
+  
+  if (!u || !p) { showError('請填入用戶名和密碼'); return; }
+  if (p !== p2) { showError('兩次密碼不一致'); return; }
+  
+  try {
+    const r = await fetch(API + '/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p, api_key: key, preferred_model: m })
+    });
+    const d = await r.json();
+    if (!r.ok) { showError(d.detail || '註冊失敗'); return; }
+    
+    authToken = d.token;
+    username = d.username;
+    apiKey = key;
+    model = m;
+    
+    localStorage.setItem('nora_token', authToken);
+    localStorage.setItem('nora_username', username);
+    
+    history = [];
+    document.getElementById('setup').style.display = 'none';
+    init();
+  } catch(e) {
+    showError('連線失敗，請稍後再試');
+  }
+}
+
+// 舊模式：直接用 API Key
 function enterRoom() {
   const key = document.getElementById('key-input').value.trim();
   model = document.getElementById('model-select').value;
   if (!key) { alert('請填入 API Key'); return; }
   apiKey = key;
+  authToken = key;  // 舊模式直接用 key 當 token
+  username = key.slice(-8);
   localStorage.setItem('nora_key', key);
   localStorage.setItem('nora_model', model);
+  history = JSON.parse(localStorage.getItem('nora_history_' + username) || '[]');
   document.getElementById('setup').style.display = 'none';
   init();
 }
 
-// 自動填入上次的 Key
-window.onload = () => {
+// 自動登入
+window.onload = async () => {
+  const savedToken = localStorage.getItem('nora_token');
+  const savedUsername = localStorage.getItem('nora_username');
+  
+  if (savedToken && savedUsername) {
+    // 嘗試用 token 自動登入
+    try {
+      const r = await fetch(API + '/auth/me', {
+        headers: { 'Authorization': 'Bearer ' + savedToken }
+      });
+      if (r.ok) {
+        const d = await r.json();
+        authToken = savedToken;
+        username = d.username;
+        apiKey = d.api_key || '';
+        model = d.preferred_model || 'deepseek-chat';
+        history = JSON.parse(localStorage.getItem('nora_history_' + username) || '[]');
+        document.getElementById('setup').style.display = 'none';
+        init();
+        return;
+      }
+    } catch(e) {}
+  }
+  
+  // 舊模式 fallback
   const savedKey = localStorage.getItem('nora_key');
   const savedModel = localStorage.getItem('nora_model');
   if (savedKey) document.getElementById('key-input').value = savedKey;
   if (savedModel) document.getElementById('model-select').value = savedModel;
+  
+  // 預設顯示登入模式
+  switchMode('login');
 };
 
 // ── INIT ──
 async function init() {
   initFireflies();
   startClock();
+  
+  // 顯示用戶名和登出按鈕
+  if (username) {
+    document.getElementById('tb-user').textContent = username;
+    document.getElementById('tb-logout').style.display = 'block';
+  }
   if (history.length > 0) {
     restoreHistory();
   } else {
@@ -665,7 +822,7 @@ async function sendMessage() {
   input.style.height = 'auto';
   addUserMessage(text);
   history.push({ role: 'user', content: text });
-  localStorage.setItem('nora_history_' + apiKey.slice(-8), JSON.stringify(history.slice(-40)));
+  localStorage.setItem('nora_history_' + (username || apiKey.slice(-8)), JSON.stringify(history.slice(-40)));
 
   showTyping();
 
@@ -674,7 +831,7 @@ async function sendMessage() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${authToken || apiKey}`
       },
       body: JSON.stringify({
         model: model,
@@ -694,7 +851,7 @@ async function sendMessage() {
 
     const content = data.choices?.[0]?.message?.content || '';
     history.push({ role: 'assistant', content });
-    localStorage.setItem('nora_history_' + apiKey.slice(-8), JSON.stringify(history.slice(-40)));
+    localStorage.setItem('nora_history_' + (username || apiKey.slice(-8)), JSON.stringify(history.slice(-40)));
 
     // 解析 thought
     let mainContent = content;
@@ -753,6 +910,22 @@ function initFireflies() {
     }
     setTimeout(()=>drift(d), del*1000);
   }
+}
+
+async function doLogout() {
+  try {
+    await fetch(API + '/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+  } catch(e) {}
+  localStorage.removeItem('nora_token');
+  localStorage.removeItem('nora_username');
+  authToken = '';
+  username = '';
+  apiKey = '';
+  history = [];
+  location.reload();
 }
 
 function toggleMusic() {
