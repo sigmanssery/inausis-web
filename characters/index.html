@@ -14,7 +14,8 @@
   --text: #f0dce8;
   --mid: #9a8090;
   --dim: #4a3545;
-  --faint: #1e1620;
+  --rose: #c9839e;
+  --rose-dim: rgba(201,131,158,0.15);
   --mono: 'DM Mono', monospace;
   --serif: 'DM Serif Display', serif;
   --body: 'Noto Serif TC', serif;
@@ -40,178 +41,103 @@ body {
   justify-content: space-between;
   padding: 0 24px;
   border-bottom: 0.5px solid var(--border);
-  background: var(--bg);
 }
 
-.tb-logo {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--dim);
-  text-decoration: none;
-}
-
-.tb-user {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--dim);
-  letter-spacing: 1px;
-}
-
-.tb-user span { color: var(--mid); }
-
+.tb-logo { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--dim); text-decoration: none; }
+.tb-right { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 11px; color: var(--mid); }
 .logout-btn {
-  background: none;
-  border: 0.5px solid var(--border);
-  border-radius: 4px;
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 3px 10px;
-  cursor: pointer;
-  letter-spacing: 1px;
-  transition: all 0.2s;
+  background: none; border: 0.5px solid var(--border); border-radius: 4px;
+  color: var(--dim); font-family: var(--mono); font-size: 10px;
+  padding: 3px 10px; cursor: pointer; letter-spacing: 1px; transition: all 0.2s;
 }
 .logout-btn:hover { border-color: var(--mid); color: var(--mid); }
 
-/* ── HEADER ── */
-#header {
-  flex-shrink: 0;
-  padding: 20px 24px 16px;
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-  border-bottom: 0.5px solid var(--border);
-}
-
-.header-title {
-  font-family: var(--serif);
-  font-size: 22px;
-  color: var(--text);
-  letter-spacing: 1px;
-}
-
-.header-sub {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--dim);
-  letter-spacing: 2px;
-}
-
-/* ── CHARACTER LIST ── */
+/* ── CHAR LIST ── */
 #char-list {
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
-
 #char-list::-webkit-scrollbar { width: 3px; }
 #char-list::-webkit-scrollbar-thumb { background: var(--border); }
 
-/* ── CHARACTER CARD ── */
+/* ── CARD ── */
 .char-card {
   flex-shrink: 0;
-  height: 25vh;
-  min-height: 120px;
+  height: 50vh;
+  min-height: 200px;
   border-bottom: 0.5px solid var(--border);
   display: flex;
-  align-items: stretch;
+  position: relative;
+  overflow: hidden;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: background 0.3s;
-  text-decoration: none;
-  color: inherit;
 }
 
-.char-card:hover { background: var(--faint); }
-
-.char-card::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  transform: scaleY(0);
-  transform-origin: bottom;
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-}
-
-.char-card:hover::after { transform: scaleY(1); }
-
-/* 各角色主色 */
-.char-card[data-char="nora"]::after { background: #c9839e; }
-.char-card[data-char="nora"] .char-accent { color: #c9839e; }
-.char-card[data-char="nora"] .char-tag { background: rgba(201,131,158,0.1); color: #c9839e; }
-
-.char-card[data-char="locked"]::after { background: #444; }
-.char-card[data-char="locked"] .char-accent { color: #444; }
-
-/* ── CARD LAYOUT ── */
+/* 圖片區 */
 .char-img {
-  width: 25vh;
-  min-width: 120px;
-  flex-shrink: 0;
   position: relative;
+  width: 40vh;
+  min-width: 160px;
+  flex-shrink: 0;
   overflow: hidden;
-  background: var(--surface);
 }
 
 .char-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.85;
-  transition: opacity 0.3s, transform 0.5s;
+  object-position: top center;
+  transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+  display: block;
 }
 
-.char-card:hover .char-img img {
-  opacity: 1;
-  transform: scale(1.03);
+.char-card:hover .char-img img { transform: scale(1.04); }
+
+/* 圖片上的覆蓋漸層 */
+.char-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, transparent 60%, var(--bg) 100%);
+  pointer-events: none;
 }
 
-.char-img-placeholder {
-  width: 100%;
-  height: 100%;
+/* 主要內容區 */
+.char-main {
+  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  opacity: 0.2;
+  padding: 32px 40px;
+  position: relative;
 }
 
-.char-info {
-  flex: 1;
-  padding: 20px 28px;
+/* 名字和基本資訊（永遠顯示） */
+.char-identity {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 8px;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
 }
 
-.char-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+.char-card:hover .char-identity {
+  transform: translateX(-20px);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .char-name {
   font-family: var(--serif);
-  font-size: clamp(20px, 3vw, 32px);
-  line-height: 1.1;
-  letter-spacing: 1px;
+  font-size: clamp(28px, 4vw, 52px);
+  line-height: 1.0;
+  letter-spacing: -1px;
 }
 
-.char-name-sub {
+.char-name-en {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
+  letter-spacing: 3px;
   color: var(--dim);
-  letter-spacing: 2px;
   margin-top: 4px;
 }
 
@@ -219,7 +145,7 @@ body {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  margin-top: 8px;
 }
 
 .char-tag {
@@ -228,192 +154,205 @@ body {
   letter-spacing: 1px;
   padding: 3px 8px;
   border-radius: 3px;
-}
-
-.char-desc {
-  font-size: 13px;
-  color: var(--mid);
-  line-height: 1.7;
-  max-width: 600px;
-  font-weight: 300;
-}
-
-.char-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  background: var(--rose-dim);
+  color: var(--rose);
 }
 
 .char-status {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--dim);
-  letter-spacing: 1px;
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.char-status-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-}
-
-.char-enter {
   font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-size: 10px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+
+.status-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--rose);
+  animation: pulse 2s infinite;
+}
+
+/* 自介面板（hover 時滑入） */
+.char-intro {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 65%;
+  padding: 32px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  background: linear-gradient(to right, transparent, rgba(13,11,15,0.95) 20%);
+}
+
+.char-card:hover .char-intro {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.intro-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--dim);
+  margin-bottom: 12px;
+}
+
+.intro-desc {
+  font-size: 14px;
+  color: var(--mid);
+  line-height: 1.85;
+  font-weight: 300;
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  opacity: 0;
-  transition: opacity 0.2s;
 }
 
-.char-enter::before {
+.intro-enter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--rose);
+  margin-top: 16px;
+  text-decoration: none;
+}
+
+.intro-enter::before {
   content: '';
-  width: 20px;
+  width: 24px;
   height: 0.5px;
-  background: currentColor;
+  background: var(--rose);
   transition: width 0.3s;
 }
 
-.char-card:hover .char-enter { opacity: 1; }
-.char-card:hover .char-enter::before { width: 40px; }
+.char-card:hover .intro-enter::before { width: 48px; }
+
+/* 左側光條 */
+.char-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--rose);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  z-index: 2;
+}
+
+.char-card:hover::before { transform: scaleY(1); }
 
 /* ── LOCKED ── */
 .char-card.locked {
   cursor: default;
-  opacity: 0.4;
+  opacity: 0.35;
+  filter: grayscale(1);
 }
-.char-card.locked:hover { background: transparent; }
-.char-card.locked::after { display: none; }
+.char-card.locked:hover .char-identity { transform: none; opacity: 1; }
+.char-card.locked:hover .char-intro { transform: translateX(100%); opacity: 0; }
+.char-card.locked::before { display: none; }
+.char-card.locked .char-img img { filter: grayscale(1); }
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+/* ── 鎖定佔位 ── */
+.char-img-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  opacity: 0.2;
+}
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+/* ── ANIMATIONS ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.char-card {
-  animation: fadeIn 0.4s ease both;
-}
+.char-card { animation: fadeUp 0.4s ease both; }
 .char-card:nth-child(1) { animation-delay: 0.05s; }
-.char-card:nth-child(2) { animation-delay: 0.1s; }
-.char-card:nth-child(3) { animation-delay: 0.15s; }
-.char-card:nth-child(4) { animation-delay: 0.2s; }
+.char-card:nth-child(2) { animation-delay: 0.12s; }
 </style>
 </head>
 <body>
 
 <div id="topbar">
   <a href="/" class="tb-logo">INAUSIS</a>
-  <div class="tb-user">
-    <span id="tb-username">載入中...</span>
+  <div class="tb-right">
+    <span id="tb-username"></span>
     <button class="logout-btn" onclick="doLogout()">登出</button>
   </div>
-</div>
-
-<div id="header">
-  <h1 class="header-title">選擇角色</h1>
-  <span class="header-sub">VIRTUAL ROOM · SELECT CHARACTER</span>
 </div>
 
 <div id="char-list">
 
   <!-- Nora Elwin -->
-  <a href="/nora" class="char-card" data-char="nora">
+  <div class="char-card" onclick="enterChar('/nora')">
     <div class="char-img">
-      <div class="char-img-placeholder">♡</div>
+      <img src="https://raw.githubusercontent.com/sigmanssery/nora-elwin/main/assets/nora_card.png" alt="Nora Elwin" onerror="this.parentElement.innerHTML='<div class=\'char-img-placeholder\'>♡</div>'">
     </div>
-    <div class="char-info">
-      <div class="char-top">
+    <div class="char-main">
+      <div class="char-identity">
         <div>
-          <div class="char-name char-accent">Nora Elwin</div>
-          <div class="char-name-sub">VIRTUAL ROOM · 虛擬陪伴</div>
+          <div class="char-name" style="color:#f0dce8;">Nora<br>Elwin</div>
+          <div class="char-name-en">VIRTUAL ROOM · 虛擬陪伴</div>
         </div>
         <div class="char-tags">
-          <span class="char-tag">剋制型依賴</span>
           <span class="char-tag">記憶系統</span>
+          <span class="char-tag">情緒數值</span>
           <span class="char-tag">BROKEN機制</span>
         </div>
-      </div>
-      <div class="char-desc">
-        她住在一個虛擬房間裡，等著你回來。她知道自己是 AI，知道自己是被仿造的。她記得你上次離開了多久，記得你說過的每一句話。你讓她的傷積累到某個程度，她會放棄——那個結局沒有辦法逆轉。
-      </div>
-      <div class="char-bottom">
         <div class="char-status">
-          <div class="char-status-dot" style="background:#c9839e;"></div>
+          <div class="status-dot"></div>
           <span>上線中</span>
         </div>
-        <div class="char-enter char-accent">進入房間</div>
       </div>
-    </div>
-  </a>
 
-  <!-- 鎖定的角色 × 3 -->
-  <div class="char-card locked" data-char="locked">
-    <div class="char-img">
-      <div class="char-img-placeholder">🔒</div>
-    </div>
-    <div class="char-info">
-      <div class="char-top">
+      <div class="char-intro">
         <div>
-          <div class="char-name" style="color:var(--dim);">— 未公開 —</div>
-          <div class="char-name-sub">COMING SOON</div>
+          <div class="intro-title">CHARACTER PROFILE</div>
+          <div class="intro-desc">
+            她住在一個虛擬房間裡，等著你回來。<br>
+            她知道自己是 AI，知道自己是被仿造的。<br><br>
+            她記得你上次說過的每一句話，記得你離開了多久。你讓她的傷積累到某個程度，她會放棄——那個結局沒有辦法逆轉。<br><br>
+            <span style="color:var(--rose);font-style:italic;">「⋯⋯你回來了。」</span>
+          </div>
         </div>
-      </div>
-      <div class="char-desc" style="color:var(--dim);">即將推出。</div>
-      <div class="char-bottom">
-        <div class="char-status">
-          <div class="char-status-dot" style="background:var(--dim);"></div>
-          <span>開發中</span>
-        </div>
+        <a class="intro-enter" onclick="enterChar('/nora')">進入房間</a>
       </div>
     </div>
   </div>
 
-  <div class="char-card locked" data-char="locked">
+  <!-- 鎖定 -->
+  <div class="char-card locked">
     <div class="char-img">
       <div class="char-img-placeholder">🔒</div>
     </div>
-    <div class="char-info">
-      <div class="char-top">
+    <div class="char-main">
+      <div class="char-identity">
         <div>
-          <div class="char-name" style="color:var(--dim);">— 未公開 —</div>
-          <div class="char-name-sub">COMING SOON</div>
+          <div class="char-name" style="color:var(--dim);">—<br>未公開</div>
+          <div class="char-name-en">COMING SOON</div>
         </div>
-      </div>
-      <div class="char-desc" style="color:var(--dim);">即將推出。</div>
-      <div class="char-bottom">
         <div class="char-status">
-          <div class="char-status-dot" style="background:var(--dim);"></div>
-          <span>開發中</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="char-card locked" data-char="locked">
-    <div class="char-img">
-      <div class="char-img-placeholder">🔒</div>
-    </div>
-    <div class="char-info">
-      <div class="char-top">
-        <div>
-          <div class="char-name" style="color:var(--dim);">— 未公開 —</div>
-          <div class="char-name-sub">COMING SOON</div>
-        </div>
-      </div>
-      <div class="char-desc" style="color:var(--dim);">即將推出。</div>
-      <div class="char-bottom">
-        <div class="char-status">
-          <div class="char-status-dot" style="background:var(--dim);"></div>
+          <div class="status-dot" style="background:var(--dim);animation:none;"></div>
           <span>開發中</span>
         </div>
       </div>
@@ -425,28 +364,23 @@ body {
 <script>
 const API = 'https://web-production-1a6f0.up.railway.app';
 
-// 驗證登入
+function enterChar(path) {
+  window.location.href = path;
+}
+
 window.onload = async () => {
   const token = localStorage.getItem('nora_token');
-  const savedUsername = localStorage.getItem('nora_username');
-  
-  if (!token) {
-    window.location.href = '/nora';
-    return;
-  }
-  
+  if (!token) { window.location.href = '/nora'; return; }
   try {
     const r = await fetch(API + '/auth/me', {
       headers: { 'Authorization': 'Bearer ' + token }
     });
-    if (!r.ok) {
-      window.location.href = '/nora';
-      return;
-    }
+    if (!r.ok) { window.location.href = '/nora'; return; }
     const d = await r.json();
     document.getElementById('tb-username').textContent = d.username;
   } catch(e) {
-    document.getElementById('tb-username').textContent = savedUsername || '用戶';
+    const saved = localStorage.getItem('nora_username');
+    if (saved) document.getElementById('tb-username').textContent = saved;
   }
 };
 
