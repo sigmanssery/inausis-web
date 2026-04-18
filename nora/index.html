@@ -405,7 +405,7 @@ body {
 const API = 'https://web-production-1a6f0.up.railway.app';
 let apiKey = '';
 let model = '';
-let history = JSON.parse(localStorage.getItem('nora_history') || '[]');
+let history = JSON.parse(localStorage.getItem('nora_history_' + apiKey.slice(-8)) || '[]');
 let musicPlaying = false;
 
 // ── SETUP ──
@@ -665,7 +665,7 @@ async function sendMessage() {
   input.style.height = 'auto';
   addUserMessage(text);
   history.push({ role: 'user', content: text });
-  localStorage.setItem('nora_history', JSON.stringify(history.slice(-40)));
+  localStorage.setItem('nora_history_' + apiKey.slice(-8), JSON.stringify(history.slice(-40)));
 
   showTyping();
 
@@ -694,7 +694,7 @@ async function sendMessage() {
 
     const content = data.choices?.[0]?.message?.content || '';
     history.push({ role: 'assistant', content });
-    localStorage.setItem('nora_history', JSON.stringify(history.slice(-40)));
+    localStorage.setItem('nora_history_' + apiKey.slice(-8), JSON.stringify(history.slice(-40)));
 
     // 解析 thought
     let mainContent = content;
