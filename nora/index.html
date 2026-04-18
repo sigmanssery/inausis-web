@@ -432,21 +432,33 @@ window.onload = () => {
 async function init() {
   initFireflies();
   startClock();
-  restoreHistory();
+  if (history.length > 0) {
+    restoreHistory();
+  } else {
+    // 第一次進來才跑開場白
+    try {
+      const userId = apiKey.slice(-8) + '_nora';
+      const r = await fetch(API + '/ping/' + userId, { method: 'POST' });
+      const d = await r.json();
+      document.getElementById('tb-status').textContent = 
+        d.broken ? '⚠ BROKEN' : '離上次：' + d.absence.display;
+      showOpening(d);
+    } catch(e) {
+      document.getElementById('tb-status').textContent = '離線模式';
+      showOpeningFallback();
+    }
+    return;
+  }
 
-  // ping API 取得離線時長
+  // 更新狀態列（不顯示開場白）
   try {
     const userId = apiKey.slice(-8) + '_nora';
     const r = await fetch(API + '/ping/' + userId, { method: 'POST' });
     const d = await r.json();
     document.getElementById('tb-status').textContent = 
-      d.broken ? '⚠ BROKEN' : `離上次：${d.absence.display}`;
-    
-    // 顯示開場白
-    showOpening(d);
+      d.broken ? '⚠ BROKEN' : '離上次：' + d.absence.display;
   } catch(e) {
     document.getElementById('tb-status').textContent = '離線模式';
-    showOpeningFallback();
   }
 }
 
