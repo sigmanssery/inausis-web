@@ -402,6 +402,8 @@ let musicPlaying = false;
 
 // ── INIT ──
 async function init() {
+  const setup = document.getElementById('setup');
+  if (setup) setup.style.display = 'none';
   initFireflies();
   startClock();
   
