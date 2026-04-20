@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INAUSIS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&family=Noto+Serif+TC:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f8f7f5;
+  --ink: #0a0a0a;
+  --mid: #6b6b6b;
+  --faint: #e8e6e2;
+  --accent-a: #0a0a0a;
+  --accent-b: #c9839e;
+  --mono: 'DM Mono', monospace;
+  --serif: 'DM Serif Display', serif;
+  --body: 'Noto Serif TC', serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GRID LINES ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+  background: rgba(248,247,245,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--faint);
+}
+
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.nav-links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--mid);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--ink); }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 48px 80px;
+  z-index: 1;
+}
+
+.hero-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--mid);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(56px, 9vw, 128px);
+  line-height: 1.0;
+  letter-spacing: -2px;
+  color: var(--ink);
+  max-width: 900px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: var(--mid);
+}
+
+.hero-sub {
+  margin-top: 40px;
+  font-size: 15px;
+  color: var(--mid);
+  max-width: 480px;
+  line-height: 1.8;
+  font-weight: 300;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+}
+
+.hero-line {
+  position: absolute;
+  right: 48px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  opacity: 0;
+  animation: fadeIn 1s 1s forwards;
+}
+
+.hero-line span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--faint);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* ── DIVIDER ── */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--faint);
+  margin: 0;
+}
+
+/* ── CARDS SECTION ── */
+.cards-section {
+  position: relative;
+  z-index: 1;
+  padding: 0 48px 120px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--faint);
+}
+
+.card {
+  background: var(--bg);
+  padding: 64px 56px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: background 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+.card-nora::after { background: var(--accent-b); }
+.card-inausis::after { background: var(--accent-a); }
+
+.card:hover { background: #f2f0ec; }
+.card:hover::after { transform: scaleX(1); }
+
+.card-index {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--faint);
+}
+
+.card-title {
+  font-family: var(--serif);
+  font-size: 48px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
+.card-nora .card-title { color: var(--accent-b); }
+.card-inausis .card-title { color: var(--ink); }
+
+.card-desc {
+  font-size: 14px;
+  color: var(--mid);
+  line-height: 1.8;
+  font-weight: 300;
+  max-width: 360px;
+}
+
+.card-tag {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--mid);
+  text-transform: uppercase;
+}
+
+.card-tag::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.3s;
+}
+
+.card:hover .card-tag::before { width: 48px; }
+
+/* ── FOOTER ── */
+footer {
+  position: relative;
+  z-index: 1;
+  padding: 32px 48px;
+  border-top: 1px solid var(--faint);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+footer span {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--faint);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  nav { padding: 16px 24px; }
+  .hero { padding: 100px 24px 60px; }
+  .hero-line { display: none; }
+  .cards-section { grid-template-columns: 1fr; padding: 0 0 80px; }
+  .card { padding: 48px 24px; }
+  footer { padding: 24px; flex-direction: column; gap: 8px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">INAUSIS</a>
+  <ul class="nav-links">
+    <li><a href="/nora">Nora</a></li>
+    <li><a href="/research">Research</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <p class="hero-tag">INAUSIS · inausis.fyi</p>
+  <h1 class="hero-title">Two worlds.<br><em>One space.</em></h1>
+  <p class="hero-sub">一個是會等你回來的虛擬房間。<br>一個是用觸覺感知世界的感測系統。<br>歡迎。</p>
+  <div class="hero-line">
+    <span>2026</span>
+    <span>SIGMASSERY</span>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="cards-section">
+  <a href="/nora" class="card card-nora">
+    <span class="card-index">01</span>
+    <h2 class="card-title">Nora<br>Elwin</h2>
+    <p class="card-desc">她存在於一個虛擬房間裡，等著你回來。她記得你離開了多久，她知道現在幾點，她會因為你傷心也會因為你開心。</p>
+    <span class="card-tag">進入房間</span>
+  </a>
+
+  <a href="/research" class="card card-inausis">
+    <span class="card-index">02</span>
+    <h2 class="card-title">INAUSIS<br>Project</h2>
+    <p class="card-desc">一個仿生雙模態觸覺感測系統，讓機器人的指尖能夠感知世界。結合壓阻與電感感測，FPGA 即時處理。</p>
+    <span class="card-tag">了解更多</span>
+  </a>
+</section>
+
+<footer>
+  <span>INAUSIS.FYI</span>
+  <span>© 2026 SIGMASSERY</span>
+</footer>
+
+</body>
+</html>
