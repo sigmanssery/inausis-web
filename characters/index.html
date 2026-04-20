@@ -10,9 +10,9 @@
 :root {
   --bg: #0d0b0f; --surface: #151118; --border: rgba(255,255,255,0.06);
   --border2: rgba(201,131,158,0.3); --text: #f0dce8; --mid: #9a8090;
-  --dim: #4a3545; --faint: #1e1620; --rose: #c9839e;
-  --rose-dim: rgba(201,131,158,0.12); --red: #f87171;
-  --mono: 'DM Mono', monospace; --serif: 'DM Serif Display', serif; --body: 'Noto Serif TC', serif;
+  --dim: #4a3545; --rose: #c9839e; --rose-dim: rgba(201,131,158,0.12);
+  --red: #f87171; --mono: 'DM Mono', monospace;
+  --serif: 'DM Serif Display', serif; --body: 'Noto Serif TC', serif;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -21,27 +21,26 @@ body { background: var(--bg); color: var(--text); font-family: var(--body); disp
 #topbar { flex-shrink:0; height:48px; display:flex; align-items:center; justify-content:space-between; padding:0 24px; border-bottom:0.5px solid var(--border); }
 .tb-logo { font-family:var(--mono); font-size:11px; letter-spacing:3px; color:var(--dim); text-decoration:none; }
 .tb-right { display:flex; align-items:center; gap:12px; font-family:var(--mono); font-size:11px; color:var(--mid); }
-.logout-btn { background:none; border:0.5px solid var(--border); border-radius:4px; color:var(--dim); font-family:var(--mono); font-size:10px; padding:3px 10px; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
-.logout-btn:hover { border-color:var(--mid); color:var(--mid); }
+.tb-btn { background:none; border:0.5px solid var(--border); border-radius:4px; color:var(--dim); font-family:var(--mono); font-size:10px; padding:3px 10px; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
+.tb-btn:hover { border-color:var(--mid); color:var(--mid); }
 
-#login-overlay { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:100; flex-direction:column; gap:16px; padding:24px; }
-.login-title { font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--dim); }
-.login-name { font-family:var(--serif); font-size:28px; color:var(--text); letter-spacing:1px; }
+/* ── KEY INPUT OVERLAY ── */
+#key-overlay { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:100; flex-direction:column; gap:16px; padding:24px; }
+.key-title { font-family:var(--mono); font-size:10px; letter-spacing:3px; color:var(--dim); }
+.key-name { font-family:var(--serif); font-size:28px; color:var(--text); letter-spacing:1px; }
+.key-desc { font-size:13px; color:var(--mid); text-align:center; line-height:1.8; max-width:380px; }
 
-.login-tabs { display:flex; border:0.5px solid var(--border); border-radius:6px; overflow:hidden; width:100%; max-width:400px; }
-.tab-btn { flex:1; padding:8px; background:none; border:none; font-family:var(--mono); font-size:11px; letter-spacing:1px; color:var(--dim); cursor:pointer; transition:all 0.2s; }
-.tab-btn.active { background:var(--rose-dim); color:var(--rose); }
+.key-form { width:100%; max-width:400px; display:flex; flex-direction:column; gap:10px; }
+.key-input { width:100%; background:var(--surface); border:0.5px solid var(--border); border-radius:6px; padding:12px 16px; color:var(--text); font-family:var(--mono); font-size:13px; outline:none; letter-spacing:1px; transition:border-color 0.2s; }
+.key-input:focus { border-color:var(--border2); }
+.key-input::placeholder { color:var(--dim); }
+.key-select { width:100%; background:var(--surface); border:0.5px solid var(--border); border-radius:6px; padding:12px 16px; color:var(--text); font-family:var(--mono); font-size:13px; outline:none; cursor:pointer; }
+.key-btn { width:100%; padding:13px; background:var(--rose); border:none; border-radius:6px; color:#0d0b0f; font-family:var(--mono); font-size:12px; letter-spacing:2px; cursor:pointer; transition:opacity 0.2s; }
+.key-btn:hover { opacity:0.85; }
+.key-note { font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; letter-spacing:1px; line-height:1.8; }
+#key-error { font-family:var(--mono); font-size:11px; color:var(--red); text-align:center; min-height:16px; }
 
-.login-form { width:100%; max-width:400px; display:flex; flex-direction:column; gap:10px; }
-.login-input { width:100%; background:var(--surface); border:0.5px solid var(--border); border-radius:6px; padding:12px 16px; color:var(--text); font-family:var(--mono); font-size:13px; outline:none; letter-spacing:1px; transition:border-color 0.2s; }
-.login-input:focus { border-color:var(--border2); }
-.login-input::placeholder { color:var(--dim); }
-.login-select { width:100%; background:var(--surface); border:0.5px solid var(--border); border-radius:6px; padding:12px 16px; color:var(--text); font-family:var(--mono); font-size:13px; outline:none; cursor:pointer; }
-.login-btn { width:100%; padding:13px; background:var(--rose); border:none; border-radius:6px; color:#0d0b0f; font-family:var(--mono); font-size:12px; letter-spacing:2px; cursor:pointer; transition:opacity 0.2s; }
-.login-btn:hover { opacity:0.85; }
-.login-note { font-family:var(--mono); font-size:10px; color:var(--dim); text-align:center; letter-spacing:1px; line-height:1.8; }
-#login-error { font-family:var(--mono); font-size:11px; color:var(--red); text-align:center; min-height:16px; }
-
+/* ── CHAR LIST ── */
 #char-list { flex:1; overflow-y:auto; display:none; flex-direction:column; }
 #char-list::-webkit-scrollbar { width:3px; }
 #char-list::-webkit-scrollbar-thumb { background:var(--border); }
@@ -69,7 +68,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--body); disp
 .intro-enter { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:12px; letter-spacing:2px; color:var(--rose); margin-top:16px; cursor:pointer; }
 .intro-enter::before { content:''; width:24px; height:0.5px; background:var(--rose); transition:width 0.3s; }
 .char-card:hover .intro-enter::before { width:48px; }
-
 .char-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:2px; background:var(--rose); transform:scaleY(0); transform-origin:bottom; transition:transform 0.4s cubic-bezier(0.4,0,0.2,1); z-index:2; }
 .char-card:hover::before { transform:scaleY(1); }
 
@@ -84,6 +82,105 @@ body { background: var(--bg); color: var(--text); font-family: var(--body); disp
 .char-card { animation:fadeUp 0.4s ease both; }
 .char-card:nth-child(1) { animation-delay:0.05s; }
 .char-card:nth-child(2) { animation-delay:0.12s; }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  #topbar { padding: 8px 14px; }
+  .tb-logo { font-size: 10px; letter-spacing: 2px; }
+  .tb-right { gap: 8px; }
+  .tb-btn { padding: 3px 8px; font-size: 9px; }
+  #tb-keyname { font-size: 10px; }
+
+  /* Key 輸入頁 */
+  #key-overlay { gap: 12px; padding: 20px 16px; }
+  .key-name { font-size: 22px; }
+  .key-desc { font-size: 12px; }
+  .key-form { gap: 8px; }
+  .key-input, .key-select { padding: 11px 14px; font-size: 14px; }
+  .key-btn { padding: 11px; font-size: 11px; }
+
+  /* 角色卡片 — 手機版垂直排列 */
+  #char-list { overflow-y: auto; overflow-x: hidden; }
+
+  .char-card {
+    height: auto;
+    min-height: unset;
+    flex-direction: column;
+    cursor: pointer;
+  }
+
+  /* 圖片上半部 */
+  .char-img {
+    width: 100%;
+    height: 55vw;
+    min-width: unset;
+  }
+
+  .char-img::after {
+    background: linear-gradient(to bottom, transparent 60%, var(--bg) 100%);
+  }
+
+  /* 內容下半部 */
+  .char-main {
+    padding: 16px 20px 24px;
+    align-items: flex-start;
+  }
+
+  /* 手機版：identity 和 intro 都顯示，不做 hover */
+  .char-identity {
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .char-intro {
+    position: static;
+    width: 100%;
+    transform: none !important;
+    opacity: 1 !important;
+    background: none;
+    padding: 0;
+    margin-top: 12px;
+  }
+
+  .char-name { font-size: 32px; }
+  .char-name-en { font-size: 10px; }
+
+  .intro-title { font-size: 9px; margin-bottom: 8px; }
+  .intro-desc {
+    font-size: 13px;
+    line-height: 1.75;
+    display: block;
+  }
+
+  .intro-enter {
+    margin-top: 16px;
+    font-size: 11px;
+    padding: 10px 16px;
+    background: var(--rose-dim);
+    border: 0.5px solid var(--border2);
+    border-radius: 6px;
+    justify-content: center;
+  }
+
+  .intro-enter::before { display: none; }
+
+  /* 左側光條改底部 */
+  .char-card::before {
+    top: unset;
+    left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .char-card:hover::before,
+  .char-card:active::before { transform: scaleX(1); }
+
+  .char-card.locked { min-height: 120px; }
+  .char-card.locked .char-img { height: 30vw; }
+}
 </style>
 </head>
 <body>
@@ -91,53 +188,35 @@ body { background: var(--bg); color: var(--text); font-family: var(--body); disp
 <div id="topbar">
   <a href="/" class="tb-logo">INAUSIS</a>
   <div class="tb-right">
-    <span id="tb-username"></span>
-    <button id="tb-logout" class="logout-btn" onclick="doLogout()" style="display:none;">登出</button>
+    <span id="tb-keyname" style="cursor:pointer;" onclick="copyKey()" title="點擊複製完整 Key"></span>
+    <button class="tb-btn" id="copy-btn" onclick="copyKey()" style="display:none;">複製 Key</button>
+    <button class="tb-btn" onclick="changeKey()">更換 Key</button>
+    <button class="tb-btn" onclick="enterDev()">Dev</button>
   </div>
 </div>
 
-<div id="login-overlay">
-  <p class="login-title">INAUSIS · VIRTUAL ROOM</p>
-  <p class="login-name">歡迎。</p>
-  <div class="login-tabs">
-    <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">登入</button>
-    <button class="tab-btn" id="tab-register" onclick="switchTab('register')">註冊</button>
-    <button class="tab-btn" id="tab-apikey" onclick="switchTab('apikey')">API Key</button>
-  </div>
-  <div class="login-form" id="form-login">
-    <input type="text" id="login-username" class="login-input" placeholder="用戶名">
-    <input type="password" id="login-password" class="login-input" placeholder="密碼" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" onclick="doLogin()">登入</button>
-  </div>
-  <div class="login-form" id="form-register" style="display:none;">
-    <input type="text" id="reg-username" class="login-input" placeholder="用戶名（2~20字元）">
-    <input type="password" id="reg-password" class="login-input" placeholder="密碼（至少6字元）">
-    <input type="password" id="reg-password2" class="login-input" placeholder="確認密碼">
-    <input type="text" id="reg-apikey" class="login-input" placeholder="API Key（可之後設定）">
-    <select id="reg-model" class="login-select">
-      <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
-      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+<!-- API KEY 輸入 -->
+<div id="key-overlay">
+  <p class="key-title">INAUSIS · VIRTUAL ROOM</p>
+  <p class="key-name">歡迎。</p>
+  <p class="key-desc">填入你的 API Key 進入。<br>Key 只存在你的瀏覽器，不會上傳。</p>
+  <div class="key-form">
+    <input type="password" id="api-key-input" class="key-input" placeholder="API Key（sk-... / AIza... / DeepSeek）" onkeydown="if(event.key==='Enter')enterWithKey()">
+    <select id="model-select" class="key-select">
+      <option value="claude-sonnet-4-20250514">Claude Sonnet 4（推薦）</option>
+      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5（快）</option>
       <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
       <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
       <option value="deepseek-chat">DeepSeek Chat</option>
+      <option value="deepseek-reasoner">DeepSeek Reasoner</option>
     </select>
-    <button class="login-btn" onclick="doRegister()">註冊並進入</button>
+    <button class="key-btn" onclick="enterWithKey()">進入</button>
+    <p class="key-note">不同 Key = 不同對話記憶，請妥善保管。</p>
   </div>
-  <div class="login-form" id="form-apikey" style="display:none;">
-    <input type="password" id="key-input" class="login-input" placeholder="sk-... 或 AIza...">
-    <select id="model-select" class="login-select">
-      <option value="claude-sonnet-4-20250514">Claude Sonnet 4</option>
-      <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
-      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-      <option value="deepseek-chat">DeepSeek Chat</option>
-    </select>
-    <button class="login-btn" onclick="enterWithKey()">進入</button>
-    <p class="login-note">Key 只存在你的瀏覽器，不上傳。</p>
-  </div>
-  <p id="login-error"></p>
+  <p id="key-error"></p>
 </div>
 
+<!-- 角色選擇 -->
 <div id="char-list">
   <div class="char-card" onclick="enterChar('/nora')">
     <div class="char-img">
@@ -165,6 +244,7 @@ body { background: var(--bg); color: var(--text); font-family: var(--body); disp
       </div>
     </div>
   </div>
+
   <div class="char-card locked">
     <div class="char-img"><div class="char-img-placeholder">🔒</div></div>
     <div class="char-main">
@@ -180,87 +260,65 @@ body { background: var(--bg); color: var(--text); font-family: var(--body); disp
 </div>
 
 <script>
-const API = 'https://web-production-1a6f0.up.railway.app';
+function showError(msg) { document.getElementById('key-error').textContent = msg; }
 
-function switchTab(tab) {
-  ['login','register','apikey'].forEach(t => {
-    document.getElementById('form-'+t).style.display = t===tab ? 'flex' : 'none';
-    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
-  });
-  document.getElementById('login-error').textContent = '';
-}
-
-function showError(msg) { document.getElementById('login-error').textContent = msg; }
-
-function showCharList(uname) {
-  document.getElementById('login-overlay').style.display = 'none';
+function showCharList(key) {
+  document.getElementById('key-overlay').style.display = 'none';
   const cl = document.getElementById('char-list');
   cl.style.display = 'flex';
   cl.style.flexDirection = 'column';
-  document.getElementById('tb-username').textContent = uname;
-  document.getElementById('tb-logout').style.display = 'block';
-}
-
-async function doLogin() {
-  const u = document.getElementById('login-username').value.trim();
-  const p = document.getElementById('login-password').value;
-  if (!u || !p) { showError('請填入帳號和密碼'); return; }
-  try {
-    const r = await fetch(API+'/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p}) });
-    const d = await r.json();
-    if (!r.ok) { showError(d.detail||'登入失敗'); return; }
-    localStorage.setItem('nora_token', d.token);
-    localStorage.setItem('nora_username', d.username);
-    localStorage.setItem('nora_api_key', d.api_key||'');
-    localStorage.setItem('nora_model', d.preferred_model||'deepseek-chat');
-    showCharList(d.username);
-  } catch(e) { showError('連線失敗'); }
-}
-
-async function doRegister() {
-  const u = document.getElementById('reg-username').value.trim();
-  const p = document.getElementById('reg-password').value;
-  const p2 = document.getElementById('reg-password2').value;
-  const key = document.getElementById('reg-apikey').value.trim();
-  const m = document.getElementById('reg-model').value;
-  if (!u||!p) { showError('請填入用戶名和密碼'); return; }
-  if (p!==p2) { showError('兩次密碼不一致'); return; }
-  try {
-    const r = await fetch(API+'/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u,password:p,api_key:key,preferred_model:m}) });
-    const d = await r.json();
-    if (!r.ok) { showError(d.detail||'註冊失敗'); return; }
-    localStorage.setItem('nora_token', d.token);
-    localStorage.setItem('nora_username', d.username);
-    localStorage.setItem('nora_api_key', key);
-    localStorage.setItem('nora_model', m);
-    showCharList(d.username);
-  } catch(e) { showError('連線失敗'); }
+  document.getElementById('tb-keyname').textContent = '···' + key.slice(-8);
+  document.getElementById('copy-btn').style.display = 'block';
 }
 
 function enterWithKey() {
-  const key = document.getElementById('key-input').value.trim();
+  const key = document.getElementById('api-key-input').value.trim();
   const m = document.getElementById('model-select').value;
   if (!key) { showError('請填入 API Key'); return; }
-  localStorage.setItem('nora_token', key);
-  localStorage.setItem('nora_username', key.slice(-8));
-  localStorage.setItem('nora_api_key', key);
+  localStorage.setItem('nora_key', key);
   localStorage.setItem('nora_model', m);
-  showCharList(key.slice(-8));
+  showCharList(key);
+}
+
+function changeKey() {
+  localStorage.removeItem('nora_key');
+  localStorage.removeItem('nora_model');
+  document.getElementById('key-overlay').style.display = 'flex';
+  document.getElementById('char-list').style.display = 'none';
+  document.getElementById('api-key-input').value = '';
+  document.getElementById('key-error').textContent = '';
 }
 
 function enterChar(path) { window.location.href = path; }
 
-function doLogout() {
-  fetch(API+'/auth/logout',{method:'POST',headers:{'Authorization':'Bearer '+localStorage.getItem('nora_token')}}).catch(()=>{});
-  ['nora_token','nora_username','nora_api_key','nora_model'].forEach(k=>localStorage.removeItem(k));
-  location.reload();
+function copyKey() {
+  const key = localStorage.getItem('nora_key');
+  if (!key) return;
+  navigator.clipboard.writeText(key).then(() => {
+    const btn = document.getElementById('copy-btn');
+    const span = document.getElementById('tb-keyname');
+    const orig = span.textContent;
+    span.textContent = '已複製！';
+    setTimeout(() => { span.textContent = orig; }, 1500);
+  }).catch(() => {
+    prompt('你的完整 API Key：', key);
+  });
+}
+
+function enterDev() {
+  const suffix = prompt('請輸入開發者密碼：');
+  if (!suffix) return;
+  localStorage.setItem('dev_key', suffix);
+  window.location.href = '/dev';
 }
 
 window.onload = () => {
-  const token = localStorage.getItem('nora_token');
-  const uname = localStorage.getItem('nora_username');
-  if (token && uname) { showCharList(uname); }
-  else { switchTab('login'); }
+  const savedKey = localStorage.getItem('nora_key');
+  const savedModel = localStorage.getItem('nora_model');
+  if (savedKey) {
+    if (savedModel) document.getElementById('model-select').value = savedModel;
+    showCharList(savedKey);
+  }
 };
 </script>
 </body>
