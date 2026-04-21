@@ -275,14 +275,17 @@ function enterWithKey() {
   const key = document.getElementById('api-key-input').value.trim();
   const m = document.getElementById('model-select').value;
   if (!key) { showError('請填入 API Key'); return; }
-  localStorage.setItem('nora_key', key);
-  localStorage.setItem('nora_model', m);
+  localStorage.removeItem('nora_key');
+  sessionStorage.setItem('nora_key', key);
+  sessionStorage.setItem('nora_model', m);
   showCharList(key);
 }
 
 function changeKey() {
   localStorage.removeItem('nora_key');
   localStorage.removeItem('nora_model');
+  sessionStorage.removeItem('nora_key');
+  sessionStorage.removeItem('nora_model');
   document.getElementById('key-overlay').style.display = 'flex';
   document.getElementById('char-list').style.display = 'none';
   document.getElementById('api-key-input').value = '';
@@ -292,7 +295,7 @@ function changeKey() {
 function enterChar(path) { window.location.href = path; }
 
 function copyKey() {
-  const key = localStorage.getItem('nora_key');
+  const key = sessionStorage.getItem('nora_key');
   if (!key) return;
   navigator.clipboard.writeText(key).then(() => {
     const btn = document.getElementById('copy-btn');
@@ -308,13 +311,13 @@ function copyKey() {
 function enterDev() {
   const suffix = prompt('請輸入開發者密碼：');
   if (!suffix) return;
-  localStorage.setItem('dev_key', suffix);
+  sessionStorage.setItem('dev_key', suffix);
   window.location.href = '/dev';
 }
 
 window.onload = () => {
-  const savedKey = localStorage.getItem('nora_key');
-  const savedModel = localStorage.getItem('nora_model');
+  const savedKey = sessionStorage.getItem('nora_key');
+  const savedModel = sessionStorage.getItem('nora_model');
   if (savedKey) {
     if (savedModel) document.getElementById('model-select').value = savedModel;
     showCharList(savedKey);

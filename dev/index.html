@@ -192,7 +192,7 @@ canvas { max-height: 200px; }
 <div id="login">
   <p class="login-title">INAUSIS · DEV PANEL</p>
   <p class="login-sub">開發者面板</p>
-  <input type="password" id="dev-key" class="login-input" placeholder="API Key 後8碼" onkeydown="if(event.key==='Enter')devLogin()">
+  <input type="password" id="dev-key" class="login-input" placeholder="Admin token" onkeydown="if(event.key==='Enter')devLogin()">
   <button class="login-btn" onclick="devLogin()">進入</button>
 </div>
 
@@ -222,11 +222,18 @@ let devKey = '';
 let currentUser = null;
 let statsChart = null;
 
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
 function devLogin() {
   const key = document.getElementById('dev-key').value.trim();
   if (!key) return;
   devKey = key;
-  localStorage.setItem('dev_key', key);
+  localStorage.removeItem('dev_key');
+  sessionStorage.setItem('dev_key', key);
   document.getElementById('login').style.display = 'none';
   document.getElementById('app').classList.add('visible');
   loadUsers();
@@ -234,7 +241,7 @@ function devLogin() {
 }
 
 window.onload = () => {
-  const saved = localStorage.getItem('dev_key');
+  const saved = sessionStorage.getItem('dev_key');
   if (saved) document.getElementById('dev-key').value = saved;
 };
 
@@ -268,13 +275,13 @@ async function loadUsers() {
 
     const lastSeen = u.last_seen ? new Date(u.last_seen).toLocaleString('zh-TW') : '從未';
     el.innerHTML = `
-      <div class="user-id">${u.user_id}</div>
+      <div class="user-id">${escapeHTML(u.user_id)}</div>
       <div class="user-meta">
-        <span class="user-badge badge-rel">${u.relationship}</span>
+        <span class="user-badge badge-rel">${escapeHTML(u.relationship)}</span>
         ${u.broken ? '<span class="user-badge badge-broken">BROKEN</span>' : ''}
-        <span>輪次 ${u.turn_count}</span>
+        <span>輪次 ${escapeHTML(u.turn_count)}</span>
       </div>
-      <div class="user-meta" style="margin-top:3px;">上次：${lastSeen}</div>
+      <div class="user-meta" style="margin-top:3px;">上次：${escapeHTML(lastSeen)}</div>
     `;
     list.appendChild(el);
   });
@@ -313,12 +320,13 @@ function renderUserDetail(user, memoriesData, fragmentsData) {
   // 數值卡片
   const statsHTML = Object.entries(s).map(([k, v]) => {
     const max = statMaxes[k] || 100;
-    const pct = Math.round((v / max) * 100);
+    const safeVal = Number.isFinite(Number(v)) ? Number(v) : 0;
+    const pct = Math.max(0, Math.min(100, Math.round((safeVal / max) * 100)));
     const color = statColors[k] || '#888';
     return `
       <div class="stat-card">
-        <div class="stat-label">${k.toUpperCase()}</div>
-        <div class="stat-value" style="color:${color}">${v}</div>
+        <div class="stat-label">${escapeHTML(k.toUpperCase())}</div>
+        <div class="stat-value" style="color:${color}">${safeVal}</div>
         <div class="stat-bar">
           <div class="stat-fill" style="width:${pct}%;background:${color}"></div>
         </div>
@@ -332,9 +340,9 @@ function renderUserDetail(user, memoriesData, fragmentsData) {
     ? '<div class="empty">沒有記憶記錄</div>'
     : memories.slice().reverse().map(m => `
         <div class="memory-item">
-          <div class="memory-turn">輪次 ${m.turn}</div>
-          <div class="memory-text">${m.summary}</div>
-          <div class="memory-time">${m.created_at}</div>
+          <div class="memory-turn">輪次 ${escapeHTML(m.turn)}</div>
+          <div class="memory-text">${escapeHTML(m.summary)}</div>
+          <div class="memory-time">${escapeHTML(m.created_at)}</div>
         </div>
       `).join('');
 
@@ -347,16 +355,16 @@ function renderUserDetail(user, memoriesData, fragmentsData) {
       return `
         <div class="fragment-card">
           <div class="fragment-id">💭</div>
-          <div class="fragment-label">碎片 ${id}｜${names[id]}</div>
+          <div class="fragment-label">碎片 ${id}｜${escapeHTML(names[id])}</div>
           <div class="fragment-unlocked">✓ 已解鎖</div>
-          <div class="fragment-shown">顯示 ${f.shown_count} 次</div>
+          <div class="fragment-shown">顯示 ${escapeHTML(f.shown_count)} 次</div>
         </div>
       `;
     } else {
       return `
         <div class="fragment-card" style="opacity:0.4">
           <div class="fragment-id">🔒</div>
-          <div class="fragment-label">碎片 ${id}｜${names[id]}</div>
+          <div class="fragment-label">碎片 ${id}｜${escapeHTML(names[id])}</div>
           <div class="fragment-locked">未解鎖</div>
         </div>
       `;
@@ -375,9 +383,9 @@ function renderUserDetail(user, memoriesData, fragmentsData) {
     <div>
       <div class="section-title">用戶資訊</div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;">
-        <div><span style="color:var(--dim)">ID：</span>${user.user_id}</div>
-        <div><span style="color:var(--dim)">關係：</span><span style="color:var(--rose)">${user.relationship} (Lv.${user.rel_level})</span></div>
-        <div><span style="color:var(--dim)">輪次：</span>${user.turn_count}</div>
+        <div><span style="color:var(--dim)">ID：</span>${escapeHTML(user.user_id)}</div>
+        <div><span style="color:var(--dim)">關係：</span><span style="color:var(--rose)">${escapeHTML(user.relationship)} (Lv.${escapeHTML(user.rel_level)})</span></div>
+        <div><span style="color:var(--dim)">輪次：</span>${escapeHTML(user.turn_count)}</div>
         <div><span style="color:var(--dim)">BROKEN：</span><span style="color:${user.broken ? 'var(--red)' : 'var(--green)'}">${user.broken ? '是' : '否'}</span></div>
       </div>
     </div>
@@ -458,11 +466,11 @@ async function showNoraLife() {
     ? '<div class="empty">還沒有後台生活記錄</div>'
     : data.nora_life.map(l => `
         <div class="life-item">
-          <div class="life-time">${l.tw_time}</div>
+          <div class="life-time">${escapeHTML(l.tw_time)}</div>
           <div class="life-content">
-            <div class="life-location">📍 ${l.location}</div>
-            <div class="life-action">${l.action}</div>
-            <div class="life-thought">💭 ${l.thought}</div>
+            <div class="life-location">📍 ${escapeHTML(l.location)}</div>
+            <div class="life-action">${escapeHTML(l.action)}</div>
+            <div class="life-thought">💭 ${escapeHTML(l.thought)}</div>
           </div>
         </div>
       `).join('');

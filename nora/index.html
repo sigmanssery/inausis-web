@@ -640,6 +640,65 @@ let username = '';
 let history = [];
 let musicPlaying = false;
 
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[ch]));
+}
+
+function appendTextWithBreaks(el, text) {
+  String(text ?? '').split('\n').forEach((part, idx) => {
+    if (idx > 0) el.appendChild(document.createElement('br'));
+    el.appendChild(document.createTextNode(part));
+  });
+}
+
+function safeMessageHTML(content) {
+  return escapeHTML(content)
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/「([^」]*)」/g, '「<span class="hi">$1</span>」')
+    .replace(/\n/g, '<br>');
+}
+
+function sanitizeStyle(value) {
+  return String(value ?? '')
+    .replace(/url\s*\([^)]*\)/gi, '')
+    .replace(/expression\s*\([^)]*\)/gi, '')
+    .replace(/javascript:/gi, '');
+}
+
+function sanitizeHTML(html) {
+  const allowedTags = new Set(['style','div','span','p','br','em','strong','details','summary','text-reply']);
+  const allowedAttrs = new Set(['class','id','style','open']);
+  const template = document.createElement('template');
+  template.innerHTML = String(html ?? '');
+
+  template.content.querySelectorAll('script,iframe,object,embed,link,meta').forEach(el => el.remove());
+  template.content.querySelectorAll('style').forEach(el => {
+    el.textContent = el.textContent.replace(/@import[^;]+;?/gi, '').replace(/url\s*\([^)]*\)/gi, '');
+  });
+
+  const walk = document.createTreeWalker(template.content, NodeFilter.SHOW_ELEMENT);
+  const nodes = [];
+  while (walk.nextNode()) nodes.push(walk.currentNode);
+  nodes.forEach(el => {
+    const tag = el.tagName.toLowerCase();
+    if (!allowedTags.has(tag)) {
+      el.replaceWith(document.createTextNode(el.textContent || ''));
+      return;
+    }
+    [...el.attributes].forEach(attr => {
+      const name = attr.name.toLowerCase();
+      if (name.startsWith('on') || !allowedAttrs.has(name)) {
+        el.removeAttribute(attr.name);
+      } else if (name === 'style') {
+        el.setAttribute('style', sanitizeStyle(attr.value));
+      }
+    });
+  });
+  return template.innerHTML;
+}
+
 // ── LOGIN SCREEN ──
 function initLoginFireflies() {
   const c = document.getElementById('login-flies');
@@ -679,8 +738,9 @@ function loginEnter() {
   btn.disabled = true;
   btn.textContent = '連線中...';
 
-  localStorage.setItem('nora_key', key);
-  localStorage.setItem('nora_model', mdl);
+  localStorage.removeItem('nora_key');
+  sessionStorage.setItem('nora_key', key);
+  sessionStorage.setItem('nora_model', mdl);
 
   apiKey = key;
   authToken = key;
@@ -742,10 +802,7 @@ function restoreHistory() {
   const messages = document.getElementById('messages');
   history.forEach(m => {
     if (m.role === 'user') {
-      const wrap = document.createElement('div');
-      wrap.className = 'msg msg-user';
-      wrap.innerHTML = '<div class="msg-label">你</div><div class="msg-bubble">' + m.content.replace(/\n/g,'<br>') + '</div>';
-      messages.appendChild(wrap);
+      addUserMessage(m.content);
     } else if (m.role === 'assistant') {
       addNoraMessage(m.content, null);
     }
@@ -792,12 +849,12 @@ function showOpening(data) {
     greeting = `⋯⋯你回來了。`;
   }
 
-  const scene = `<em>${scenes[sceneIdx]}\n${noraPos}</em>\n\n「${greeting}」`;
+  const scene = `${scenes[sceneIdx]}\n${noraPos}\n\n「${greeting}」`;
   addNoraMessage(scene, null, true);
 }
 
 function showOpeningFallback() {
-  addNoraMessage('<em>*她坐在床沿，抬起頭——*</em>\n\n「⋯⋯你來了。」', null, true);
+  addNoraMessage('*她坐在床沿，抬起頭——*\n\n「⋯⋯你來了。」', null, true);
 }
 
 // ── MESSAGES ──
@@ -809,15 +866,7 @@ function addNoraMessage(content, thought, isOpening = false) {
     wrap.style.cssText = 'width:100%;max-width:100%;align-self:stretch;';
     const match = content.match(/<text-reply>([\s\S]*?)<\/text-reply>/);
     const inner = match ? match[1] : content;
-    wrap.innerHTML = inner;
-    wrap.querySelectorAll('script').forEach(s => {
-      try {
-        const ns = document.createElement('script');
-        ns.textContent = s.textContent;
-        document.body.appendChild(ns);
-        s.remove();
-      } catch(e) {}
-    });
+    wrap.innerHTML = sanitizeHTML(inner);
     messages.appendChild(wrap);
     messages.scrollTop = messages.scrollHeight;
     return;
@@ -833,25 +882,27 @@ function addNoraMessage(content, thought, isOpening = false) {
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
 
-  let html = content
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/「([^」]*)」/g, '「<span class="hi">$1</span>」')
-    .replace(/\n/g, '<br>');
-
-  bubble.innerHTML = html;
+  bubble.innerHTML = safeMessageHTML(content);
   wrap.appendChild(label);
   wrap.appendChild(bubble);
 
   if (thought) {
     const thoughtWrap = document.createElement('div');
     thoughtWrap.className = 'thought-wrap';
-    thoughtWrap.innerHTML = `
-      <button class="thought-toggle" onclick="this.nextElementSibling.classList.toggle('open')">內心想法</button>
-      <div class="thought-body">
-        <span class="thought-label">NORA</span>
-        ${thought}
-      </div>
-    `;
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'thought-toggle';
+    toggle.textContent = '內心想法';
+    const thoughtBody = document.createElement('div');
+    thoughtBody.className = 'thought-body';
+    const thoughtLabel = document.createElement('span');
+    thoughtLabel.className = 'thought-label';
+    thoughtLabel.textContent = 'NORA';
+    thoughtBody.appendChild(thoughtLabel);
+    thoughtBody.appendChild(document.createTextNode(String(thought)));
+    toggle.addEventListener('click', () => thoughtBody.classList.toggle('open'));
+    thoughtWrap.appendChild(toggle);
+    thoughtWrap.appendChild(thoughtBody);
     wrap.appendChild(thoughtWrap);
   }
 
@@ -863,10 +914,14 @@ function addUserMessage(content) {
   const messages = document.getElementById('messages');
   const wrap = document.createElement('div');
   wrap.className = 'msg msg-user';
-  wrap.innerHTML = `
-    <div class="msg-label">你</div>
-    <div class="msg-bubble">${content.replace(/\n/g, '<br>')}</div>
-  `;
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = '你';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  appendTextWithBreaks(bubble, content);
+  wrap.appendChild(label);
+  wrap.appendChild(bubble);
   messages.appendChild(wrap);
   messages.scrollTop = messages.scrollHeight;
 }
@@ -1015,6 +1070,8 @@ function initFireflies() {
 function doLogout() {
   localStorage.removeItem('nora_key');
   localStorage.removeItem('nora_model');
+  sessionStorage.removeItem('nora_key');
+  sessionStorage.removeItem('nora_model');
   apiKey = ''; authToken = ''; model = ''; username = ''; history = [];
   // 重新顯示登入畫面
   const ls = document.getElementById('login-screen');
@@ -1070,43 +1127,44 @@ function renderDrawer(d, body) {
 
   const statsHTML = Object.entries(s).map(([k,v]) => {
     const max = statMax[k] || 100;
-    const pct = Math.round((v/max)*100);
+    const safeVal = Number.isFinite(Number(v)) ? Number(v) : 0;
+    const pct = Math.max(0, Math.min(100, Math.round((safeVal/max)*100)));
     const color = statColors[k] || '#888';
     return `<div class="d-stat-row">
-      <span class="d-stat-name">${k.toUpperCase()}</span>
+      <span class="d-stat-name">${escapeHTML(k.toUpperCase())}</span>
       <div class="d-stat-track"><div class="d-stat-fill" style="width:${pct}%;background:${color}"></div></div>
-      <span class="d-stat-num">${v}</span>
+      <span class="d-stat-num">${safeVal}</span>
     </div>`;
   }).join('');
 
   const fragsHTML = d.fragments.map(f => `
     <div class="d-fragment">
       <div class="d-frag-dot" style="background:${f.unlocked ? '#c9839e' : '#333'}"></div>
-      <span style="color:${f.unlocked ? 'var(--text-mid)' : 'var(--text-faint)'}">碎片${f.id}·${f.name}</span>
+      <span style="color:${f.unlocked ? 'var(--text-mid)' : 'var(--text-faint)'}">碎片${escapeHTML(f.id)}·${escapeHTML(f.name)}</span>
       <span style="margin-left:auto;color:${f.unlocked ? '#4ade80' : 'var(--text-faint)'};">${f.unlocked ? '✓' : '🔒'}</span>
     </div>
   `).join('');
 
   const memoriesHTML = d.memories.length === 0
     ? '<div class="d-loading" style="padding:8px;">尚無記憶</div>'
-    : d.memories.slice().reverse().map(m => `<div class="d-memory">${m}</div>`).join('');
+    : d.memories.slice().reverse().map(m => `<div class="d-memory">${escapeHTML(m)}</div>`).join('');
 
   const lifeHTML = d.nora_life.length === 0
     ? '<div class="d-loading" style="padding:8px;">尚無後台記錄</div>'
     : d.nora_life.slice().reverse().map(l => `
         <div class="d-life">
-          <span class="d-life-time">${l.time} · ${l.location}</span>
-          <span class="d-life-action">${l.action}</span>
-          ${l.monologue ? `<span class="d-life-mono">「${l.monologue}」</span>` : ''}
+          <span class="d-life-time">${escapeHTML(l.time)} · ${escapeHTML(l.location)}</span>
+          <span class="d-life-action">${escapeHTML(l.action)}</span>
+          ${l.monologue ? `<span class="d-life-mono">「${escapeHTML(l.monologue)}」</span>` : ''}
         </div>
       `).join('');
 
   body.innerHTML = `
     <div class="d-section">
       <div class="d-label">基本資訊</div>
-      <div class="d-row"><span class="d-key">關係等級</span><span class="d-val rose">Lv.${d.relationship.level} ${d.relationship.name}</span></div>
-      <div class="d-row"><span class="d-key">對話輪次</span><span class="d-val">${d.turn_count}</span></div>
-      <div class="d-row"><span class="d-key">離上次</span><span class="d-val">${d.absence.display}</span></div>
+      <div class="d-row"><span class="d-key">關係等級</span><span class="d-val rose">Lv.${escapeHTML(d.relationship.level)} ${escapeHTML(d.relationship.name)}</span></div>
+      <div class="d-row"><span class="d-key">對話輪次</span><span class="d-val">${escapeHTML(d.turn_count)}</span></div>
+      <div class="d-row"><span class="d-key">離上次</span><span class="d-val">${escapeHTML(d.absence.display)}</span></div>
       <div class="d-row"><span class="d-key">BROKEN</span><span class="d-val ${d.broken ? 'red' : 'green'}">${d.broken ? '是' : '否'}</span></div>
     </div>
     <div class="d-section">
@@ -1149,8 +1207,8 @@ window.onload = () => {
   initLoginFireflies();
 
   // 預填上次的 key（若有）
-  const savedKey = localStorage.getItem('nora_key');
-  const savedModel = localStorage.getItem('nora_model');
+  const savedKey = sessionStorage.getItem('nora_key');
+  const savedModel = sessionStorage.getItem('nora_model');
   if (savedKey) document.getElementById('lg-key').value = savedKey;
   if (savedModel) {
     const sel = document.getElementById('lg-model');
